@@ -1,32 +1,50 @@
-# React + TypeScript + Vite
+# Pokémon Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A modern and responsive Pokémon Explorer built with React, TypeScript, and Vite using the PokéAPI.
 
-Currently, two official plugins are available:
+The application allows users to search, filter, explore, and view detailed information about Pokémon through a clean and interactive interface.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Browse Pokémon in a responsive card-based layout
+- Search Pokémon by name
+- Filter Pokémon by type
+- View detailed Pokémon information
+- Display Pokémon images, IDs, names, and types
+- Responsive design for desktop, tablet, and mobile
+- Loading states while fetching API data
+- Error handling for failed API requests and invalid searches
+- Empty state for unavailable search results
+- Interactive hover effects and modern UI
+- Dark-themed interface
+- Load More functionality for exploring additional Pokémon
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the Oxlint configuration
+- React
+- TypeScript
+- Vite
+- CSS
+- Lucide React
+- PokéAPI
+- GitHub
+- Vercel
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## API Used
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+This project uses the public PokéAPI.
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+API Base URL:
+
+https://pokeapi.co/api/v2/
+
+The application uses Pokémon endpoints to retrieve Pokémon lists and detailed Pokémon information.
+
+No API key or authentication is required.
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Varshith12/pokemon-explorer-v01.git
