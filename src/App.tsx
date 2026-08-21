@@ -1,65 +1,82 @@
-import { useEffect, useState } from 'react';
-import { Search, Heart, Moon, Sparkles, Loader2 } from 'lucide-react';
-import { getPokemonList, getPokemon } from './assets/services/pokemonApi';
-import type { Pokemon } from './assets/services/pokemonApi';
-import PokemonModal from './components/PokemonModal';
+import { useEffect, useState } from "react";
+import { Search, Heart, Moon, Sun, Sparkles, Loader2 } from "lucide-react";
+import { getPokemonList, getPokemon } from "./assets/services/pokemonApi";
+import type { Pokemon } from "./assets/services/pokemonApi";
+import PokemonModal from "./components/PokemonModal";
 
 const typeColors: Record<string, string> = {
-  fire: 'bg-orange-500',
-  water: 'bg-blue-500',
-  grass: 'bg-green-500',
-  electric: 'bg-yellow-400 text-black',
-  psychic: 'bg-pink-500',
-  ghost: 'bg-purple-500',
-  dragon: 'bg-indigo-500',
-  ice: 'bg-cyan-400 text-black',
-  poison: 'bg-violet-500',
-  bug: 'bg-lime-500 text-black',
-  normal: 'bg-gray-500',
-  fighting: 'bg-red-700',
-  ground: 'bg-amber-700',
-  rock: 'bg-stone-500',
-  fairy: 'bg-rose-400 text-black',
+  fire: "bg-orange-500",
+  water: "bg-blue-500",
+  grass: "bg-green-500",
+  electric: "bg-yellow-400 text-black",
+  psychic: "bg-pink-500",
+  ghost: "bg-purple-500",
+  dragon: "bg-indigo-500",
+  ice: "bg-cyan-400 text-black",
+  poison: "bg-violet-500",
+  bug: "bg-lime-500 text-black",
+  normal: "bg-gray-500",
+  fighting: "bg-red-700",
+  ground: "bg-amber-700",
+  rock: "bg-stone-500",
+  fairy: "bg-rose-400 text-black",
 };
 
 const pokemonTypes = [
-  'All',
-  'Fire',
-  'Water',
-  'Grass',
-  'Electric',
-  'Psychic',
-  'Dragon',
-  'Ghost',
-  'Ice',
-  'Bug',
-  'Poison',
-  'Normal',
+  "All",
+  "Fire",
+  "Water",
+  "Grass",
+  "Electric",
+  "Psychic",
+  "Dragon",
+  "Ghost",
+  "Ice",
+  "Bug",
+  "Poison",
+  "Normal",
 ];
 
-function App() {
+export default function App() {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const [search, setSearch] = useState('');
-  const [error, setError] = useState('');
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
 
   const [offset, setOffset] = useState(20);
   const [hasMore, setHasMore] = useState(true);
 
-  const [selectedType, setSelectedType] = useState('All');
+  const [selectedType, setSelectedType] = useState("All");
+
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
+    const fav = localStorage.getItem("favorites");
+    if (fav) setFavorites(JSON.parse(fav));
+
+    const theme = localStorage.getItem("theme");
+    if (theme) setDarkMode(theme === "dark");
+
     loadInitialPokemon();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
+  useEffect(() => {
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   const loadInitialPokemon = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       const list = await getPokemonList(20, 0);
 
@@ -70,9 +87,8 @@ function App() {
       setPokemon(details);
       setOffset(20);
       setHasMore(Boolean(list.next));
-      setSelectedType('All');
-    } catch (err) {
-      console.error(err);
+      setSelectedType("All");
+    } catch {
       setError("Couldn't load Pokémon.");
     } finally {
       setLoading(false);
@@ -94,9 +110,6 @@ function App() {
       setPokemon((prev) => [...prev, ...details]);
       setOffset((prev) => prev + 20);
       setHasMore(Boolean(list.next));
-    } catch (err) {
-      console.error(err);
-      setError("Couldn't load more Pokémon.");
     } finally {
       setLoadingMore(false);
     }
@@ -110,29 +123,34 @@ function App() {
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       const result = await getPokemon(search.trim().toLowerCase());
 
       setPokemon([result]);
       setHasMore(false);
-      setSelectedType('All');
-    } catch (err) {
-      console.error(err);
+      setSelectedType("All");
+    } catch {
       setPokemon([]);
-      setError('Pokémon not found. Try searching for another Pokémon.');
+      setError("Pokémon not found. Try searching for another Pokémon.");
     } finally {
       setLoading(false);
     }
   };
 
   const clearSearch = () => {
-    setSearch('');
+    setSearch("");
     loadInitialPokemon();
   };
 
+  const toggleFavorite = (id: number) => {
+    setFavorites((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const filteredPokemon =
-    selectedType === 'All'
+    selectedType === "All"
       ? pokemon
       : pokemon.filter((p) =>
           p.types.some(
@@ -141,9 +159,18 @@ function App() {
         );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-slate-950/80 backdrop-blur">
+    <div
+      className={`min-h-screen ${
+        darkMode
+          ? "bg-slate-950 text-white"
+          : "bg-slate-100 text-slate-900"
+      }`}
+    >
+      <header
+        className={`sticky top-0 z-50 border-b ${
+          darkMode ? "border-white/10 bg-slate-950/80" : "bg-white"
+        } backdrop-blur`}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-gradient-to-br from-yellow-400 to-red-500 p-3">
@@ -152,205 +179,170 @@ function App() {
 
             <div>
               <h1 className="text-lg font-bold">Pokémon Explorer</h1>
-              <p className="text-xs text-slate-400">Discover your favorites</p>
+              <p
+                className={`text-xs ${
+                  darkMode ? "text-slate-400" : "text-slate-600"
+                }`}
+              >
+                Discover your favorites
+              </p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button className="rounded-lg p-2 hover:bg-white/10">
-              <Heart />
-            </button>
-
-            <button className="rounded-lg p-2 hover:bg-white/10">
-              <Moon />
-            </button>
-          </div>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="rounded-lg border p-2 hover:bg-slate-700/20"
+          >
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="mx-auto max-w-7xl px-5 py-10">
-        {/* Hero */}
-        <section className="text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-yellow-400/10 px-4 py-2 text-yellow-300">
-            <Sparkles size={18} />
-            Explore the Pokémon world
+      <main className="mx-auto max-w-7xl px-5 py-8">
+        <h2 className="mb-2 text-5xl font-extrabold">
+          Discover <span className="text-yellow-400">Pokémon</span>
+        </h2>
+
+        <p className="mb-8 text-slate-400">
+          Search, explore and discover detailed information about your favorite
+          Pokémon.
+        </p>
+
+        <div className="mb-6 flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-4 text-slate-400" size={20} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Search Pokémon by name..."
+              className="w-full rounded-xl border border-slate-700 bg-slate-800 py-3 pl-12 pr-4 text-white outline-none"
+            />
           </div>
 
-          <h2 className="text-5xl font-black">
-            Discover{' '}
-            <span className="bg-gradient-to-r from-yellow-300 via-red-400 to-pink-500 bg-clip-text text-transparent">
-              Pokémon
-            </span>
-          </h2>
+          <button
+            onClick={handleSearch}
+            className="rounded-xl bg-yellow-400 px-6 py-3 font-semibold text-black hover:bg-yellow-300"
+          >
+            Search
+          </button>
+        </div>
 
-          <p className="mx-auto mt-4 max-w-xl text-slate-400">
-            Search, explore and discover detailed information about your
-            favorite Pokémon.
-          </p>
+        {search && (
+          <button
+            onClick={clearSearch}
+            className="mb-5 text-sm text-yellow-400 underline"
+          >
+            Clear Search
+          </button>
+        )}
 
-          {/* Search */}
-          <div className="mx-auto mt-8 flex max-w-xl gap-3">
-            <div className="flex flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
-              <Search className="text-slate-400" />
-
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search Pokémon by name..."
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-
+        <div className="mb-8 flex flex-wrap gap-2">
+          {pokemonTypes.map((type) => (
             <button
-              onClick={handleSearch}
-              className="rounded-2xl bg-yellow-400 px-6 font-semibold text-black hover:bg-yellow-300"
+              key={type}
+              onClick={() => setSelectedType(type)}
+              className={`rounded-full px-4 py-2 text-sm ${
+                selectedType === type
+                  ? "bg-yellow-400 text-black"
+                  : "bg-slate-800 text-white hover:bg-slate-700"
+              }`}
             >
-              Search
+              {type}
             </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin" size={40} />
           </div>
-
-          {search && (
-            <button
-              onClick={clearSearch}
-              className="mt-3 text-sm text-slate-400 hover:text-white"
-            >
-              Clear Search
-            </button>
-          )}
-        </section>
-
-        {/* Type Filter */}
-        <section className="mt-8">
-          <div className="flex flex-wrap justify-center gap-3">
-            {pokemonTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  selectedType === type
-                    ? 'bg-yellow-400 text-black'
-                    : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Error */}
-        {error && (
-          <div className="mx-auto mt-8 max-w-xl rounded-xl border border-red-500 bg-red-500/20 p-4 text-center text-red-300">
-            <p>{error}</p>
-
+        ) : error ? (
+          <div className="rounded-xl bg-red-500/20 p-8 text-center">
+            <p className="mb-3 text-red-300">{error}</p>
             <button
               onClick={loadInitialPokemon}
-              className="mt-4 rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-400"
+              className="rounded-lg bg-red-400 px-5 py-2 font-semibold text-white"
             >
               Try Again
             </button>
           </div>
-        )}
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+              {filteredPokemon.map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => setSelectedPokemon(p)}
+                  className="cursor-pointer rounded-2xl bg-slate-900 p-4 transition hover:scale-105"
+                >
+                  <div className="mb-2 flex justify-between text-xs text-slate-400">
+                    <span>#{String(p.id).padStart(3, "0")}</span>
 
-        {/* Cards */}
-        <section className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-80 animate-pulse rounded-3xl bg-slate-800"
-              />
-            ))
-          ) : filteredPokemon.length === 0 ? (
-            <div className="col-span-full py-20 text-center">
-              <div className="text-6xl">🔍</div>
-
-              <h3 className="mt-4 text-2xl font-bold">No Pokémon Found</h3>
-
-              <p className="mt-2 text-slate-400">
-                Try searching for another Pokémon.
-              </p>
-            </div>
-          ) : (
-            filteredPokemon.map((p) => (
-              <div
-                key={p.id}
-                onClick={() => setSelectedPokemon(p)}
-                className="group cursor-pointer rounded-3xl border border-white/10 bg-white/5 p-5 transition duration-300 hover:-translate-y-2 hover:bg-white/10"
-              >
-                <div className="flex justify-between">
-                  <span className="text-slate-400">
-                    #{String(p.id).padStart(3, '0')}
-                  </span>
-
-                  <Heart
-                    size={18}
-                    className="text-slate-500 transition hover:text-red-400"
-                  />
-                </div>
-
-                <div className="flex justify-center py-5">
-                  <img
-                    src={
-                      p.sprites.other?.['official-artwork']?.front_default ||
-                      p.sprites.front_default ||
-                      ''
-                    }
-                    alt={p.name}
-                    className="h-36 w-36 object-contain transition duration-300 group-hover:scale-110"
-                  />
-                </div>
-
-                <h3 className="text-center text-2xl font-bold capitalize">
-                  {p.name}
-                </h3>
-
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  {p.types.map((type) => (
-                    <span
-                      key={type.type.name}
-                      className={`rounded-full px-3 py-1 text-sm font-medium ${
-                        typeColors[type.type.name] || 'bg-gray-500'
-                      }`}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(p.id);
+                      }}
                     >
-                      {type.type.name}
-                    </span>
-                  ))}
+                      <Heart
+                        size={18}
+                        className={
+                          favorites.includes(p.id)
+                            ? "fill-red-500 text-red-500"
+                            : "text-slate-400"
+                        }
+                      />
+                    </button>
+                  </div>
+
+                  <img
+                    src={p.sprites.other["official-artwork"].front_default}
+                    alt={p.name}
+                    className="mx-auto h-28 w-28"
+                  />
+
+                  <h3 className="mt-3 text-center font-bold capitalize">
+                    {p.name}
+                  </h3>
+
+                  <div className="mt-3 flex justify-center gap-2">
+                    {p.types.map((t) => (
+                      <span
+                        key={t.type.name}
+                        className={`rounded-full px-3 py-1 text-xs capitalize ${
+                          typeColors[t.type.name] || "bg-gray-600"
+                        }`}
+                      >
+                        {t.type.name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="mt-10 text-center">
+                <button
+                  onClick={loadMorePokemon}
+                  disabled={loadingMore}
+                  className="rounded-xl bg-yellow-400 px-8 py-3 font-semibold text-black hover:bg-yellow-300"
+                >
+                  {loadingMore ? "Loading..." : "Load More"}
+                </button>
               </div>
-            ))
-          )}
-        </section>
-
-        {/* Load More */}
-        {!loading && hasMore && filteredPokemon.length > 0 && (
-          <div className="mt-10 flex justify-center">
-            <button
-              onClick={loadMorePokemon}
-              disabled={loadingMore}
-              className="flex items-center gap-2 rounded-xl bg-yellow-400 px-6 py-3 font-semibold text-black hover:bg-yellow-300 disabled:opacity-60"
-            >
-              {loadingMore && <Loader2 className="animate-spin" size={18} />}
-
-              {loadingMore ? 'Loading...' : 'Load More'}
-            </button>
-          </div>
+            )}
+          </>
         )}
       </main>
 
-      <footer className="border-t border-white/10 py-8 text-center text-sm text-slate-500">
-        Pokémon Explorer • Powered by PokéAPI
-      </footer>
-
-      {/* Details Modal */}
-      <PokemonModal
-        pokemon={selectedPokemon}
-        onClose={() => setSelectedPokemon(null)}
-      />
+      {selectedPokemon && (
+        <PokemonModal
+          pokemon={selectedPokemon}
+          onClose={() => setSelectedPokemon(null)}
+        />
+      )}
     </div>
   );
 }
-
-export default App;
